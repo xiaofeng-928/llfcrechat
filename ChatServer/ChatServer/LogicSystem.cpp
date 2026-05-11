@@ -2,7 +2,6 @@
 #include "MysqlMgr.h"
 #include "const.h"
 #include "UserMgr.h"
-#include "RedisMgr.h"
 #include <chrono>
 
 using namespace std;
@@ -99,33 +98,15 @@ void LogicSystem::LoginHandler(shared_ptr<CSession> session, const short &msg_id
 		session->Send(return_str, MSG_CHAT_LOGIN_RSP);
 	});
 
-	// 先从Redis缓存查询用户信息
-	std::string cached_name;
-	bool isCached = UserMgr::GetInstance()->GetUserCache(uid, cached_name);
-
-	if (isCached) {
-		// 命中缓存
-		std::cout << "[LoginHandler] Hit Redis cache, uid=" << uid << ", name=" << cached_name << std::endl;
-		rtvalue["error"] = ErrorCodes::Success;
-		rtvalue["uid"] = uid;
-		rtvalue["name"] = cached_name;
+	auto user_info = MysqlMgr::GetInstance()->GetUser(uid);
+	if (user_info == nullptr) {
+		rtvalue["error"] = ErrorCodes::UidInvalid;
+		return;
 	}
-	else {
-		// 未命中缓存，从MySQL查询
-		auto user_info = MysqlMgr::GetInstance()->GetUser(uid);
-		if (user_info == nullptr) {
-			rtvalue["error"] = ErrorCodes::UidInvalid;
-			return;
-		}
 
-		rtvalue["error"] = ErrorCodes::Success;
-		rtvalue["uid"] = uid;
-		rtvalue["name"] = user_info->name;
-
-		// 保存到Redis缓存
-		UserMgr::GetInstance()->SetUserCache(uid, user_info->name);
-		std::cout << "[LoginHandler] Missed cache, load from MySQL and save to Redis, uid=" << uid << std::endl;
-	}
+	rtvalue["error"] = ErrorCodes::Success;
+	rtvalue["uid"] = uid;
+	rtvalue["name"] = user_info->name;
 
 	session->SetUserId(uid);
 	UserMgr::GetInstance()->SetUserSession(uid, session);
@@ -160,31 +141,13 @@ void LogicSystem::GetUserInfoHandler(std::shared_ptr<CSession> session, const sh
 		session->Send(return_str, ID_GET_USER_INFO_RSP);
 	});
 
-	// 先从Redis缓存查询
-	std::string cached_name;
-	bool isCached = UserMgr::GetInstance()->GetUserCache(uid, cached_name);
-
-	if (isCached) {
-		// 命中缓存
-		rtvalue["error"] = ErrorCodes::Success;
-		rtvalue["uid"] = uid;
-		rtvalue["name"] = cached_name;
-		std::cout << "[GetUserInfoHandler] Hit Redis cache, uid=" << uid << std::endl;
+	auto user_info = MysqlMgr::GetInstance()->GetUser(uid);
+	if (user_info == nullptr) {
+		rtvalue["error"] = ErrorCodes::UidInvalid;
+		return;
 	}
-	else {
-		// 未命中缓存，从MySQL查询
-		auto user_info = MysqlMgr::GetInstance()->GetUser(uid);
-		if (user_info == nullptr) {
-			rtvalue["error"] = ErrorCodes::UidInvalid;
-			return;
-		}
 
-		rtvalue["error"] = ErrorCodes::Success;
-		rtvalue["uid"] = user_info->uid;
-		rtvalue["name"] = user_info->name;
-
-		// 保存到Redis缓存
-		UserMgr::GetInstance()->SetUserCache(uid, user_info->name);
-		std::cout << "[GetUserInfoHandler] Missed cache, load from MySQL, uid=" << uid << std::endl;
-	}
+	rtvalue["error"] = ErrorCodes::Success;
+	rtvalue["uid"] = user_info->uid;
+	rtvalue["name"] = user_info->name;
 }

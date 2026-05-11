@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <jdbc/mysql_driver.h>
 #include <jdbc/mysql_connection.h>
 #include <jdbc/cppconn/prepared_statement.h>
@@ -23,42 +23,25 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <string>
 
-namespace beast = boost::beast;         // from <boost/beast.hpp>
-namespace http = beast::http;           // from <boost/beast/http.hpp>
-namespace net = boost::asio;            // from <boost/asio.hpp>
-using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
+namespace beast = boost::beast;
+namespace http = beast::http;
+namespace net = boost::asio;
+using tcp = boost::asio::ip::tcp;
 
 enum ErrorCodes {
 	Success = 0,
-	Error_Json = 1001,  //Json½âÎö´íÎó
-	RPCFailed = 1002,  //RPCÇëÇó´íÎó
-	VarifyExpired = 1003, //ÑéÖ¤Âë¹ıÆÚ
-	VarifyCodeErr = 1004, //ÑéÖ¤Âë´íÎó
-	UserExist = 1005,       //ÓÃ»§ÒÑ¾­´æÔÚ
-	PasswdErr = 1006,    //ÃÜÂë´íÎó
-	EmailNotMatch = 1007,  //ÓÊÏä²»Æ¥Åä
-	PasswdUpFailed = 1008,  //¸üĞÂÃÜÂëÊ§°Ü
-	PasswdInvalid = 1009,   //ÃÜÂë¸üĞÂÊ§°Ü
-	TokenInvalid = 1010,   //TokenÊ§Ğ§
-	UidInvalid = 1011,  //uidÎŞĞ§
+	Error_Json = 1001,
+	UserExist = 1005,
+	PasswdErr = 1006,
+	PasswdInvalid = 1009,
 };
 
-
-// DeferÀà
 class Defer {
 public:
-	// ½ÓÊÜÒ»¸ölambda±í´ïÊ½»òÕßº¯ÊıÖ¸Õë
 	Defer(std::function<void()> func) : func_(func) {}
-
-	// Îö¹¹º¯ÊıÖĞÖ´ĞĞ´«ÈëµÄº¯Êı
 	~Defer() {
 		func_();
 	}
-
 private:
 	std::function<void()> func_;
 };
-
-#define CODEPREFIX  "code_"
-
-

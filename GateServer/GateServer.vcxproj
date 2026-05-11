@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -65,7 +65,7 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="E:\all thing\protobuf\PropertySheet.props" />
+    <Import Project="E:\all thing\protobuf\PropertySheet_without_grpc.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -152,11 +152,8 @@
     <ClCompile Include="GateServer.cpp" />
     <ClCompile Include="HttpConnection.cpp" />
     <ClCompile Include="LogicSystem.cpp" />
-    <ClCompile Include="message.grpc.pb.cc" />
-    <ClCompile Include="message.pb.cc" />
     <ClCompile Include="MysqlDao.cpp" />
     <ClCompile Include="MysqlMgr.cpp" />
-    <ClCompile Include="RedisMgr.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AsioIOServicePool.h" />
@@ -165,11 +162,8 @@
     <ClInclude Include="CServer.h" />
     <ClInclude Include="HttpConnection.h" />
     <ClInclude Include="LogicSystem.h" />
-    <ClInclude Include="message.grpc.pb.h" />
-    <ClInclude Include="message.pb.h" />
     <ClInclude Include="MysqlDao.h" />
     <ClInclude Include="MysqlMgr.h" />
-    <ClInclude Include="RedisMgr.h" />
     <ClInclude Include="Singleton.h" />
   </ItemGroup>
   <ItemGroup>

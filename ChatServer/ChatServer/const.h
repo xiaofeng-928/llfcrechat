@@ -1,19 +1,10 @@
-#pragma once
+﻿#pragma once
 #include <functional>
 
 
 enum ErrorCodes {
 	Success = 0,
 	Error_Json = 1001,
-	RPCFailed = 1002,
-	VarifyExpired = 1003,
-	VarifyCodeErr = 1004,
-	UserExist = 1005,
-	PasswdErr = 1006,
-	EmailNotMatch = 1007,
-	PasswdUpFailed = 1008,
-	PasswdInvalid = 1009,
-	TokenInvalid = 1010,
 	UidInvalid = 1011,
 };
 
@@ -54,10 +45,3 @@ enum MSG_IDS {
 	ID_GET_USER_INFO_REQ = 1022,
 	ID_GET_USER_INFO_RSP = 1023,
 };
-
-#define USERIPPREFIX  "uip_"
-#define USERTOKENPREFIX  "utoken_"
-#define IPCOUNTPREFIX  "ipcount_"
-#define USER_BASE_INFO "ubaseinfo_"
-#define LOGIN_COUNT  "logincount"
-#define NAME_INFO  "nameinfo_"
