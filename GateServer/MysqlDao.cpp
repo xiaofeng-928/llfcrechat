@@ -1,4 +1,4 @@
-#include "MysqlDao.h"
+﻿#include "MysqlDao.h"
 #include "ConfigMgr.h"
 
 MysqlDao::MysqlDao()
@@ -120,5 +120,5 @@ bool MysqlDao::CheckPwd(const std::string& name, const std::string& pwd, UserInf
 		std::cerr << ", SQLState: " << e.getSQLState() << " )" << std::endl;
 		return false;
 	}
-	return true;
+	return false;
 }

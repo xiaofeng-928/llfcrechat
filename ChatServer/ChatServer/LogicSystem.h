@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Singleton.h"
 #include <queue>
 #include <thread>
@@ -23,8 +23,8 @@ private:
 	void DealMsg();
 	void RegisterCallBacks();
 	void LoginHandler(shared_ptr<CSession> session, const short &msg_id, const string &msg_data);
-	void EchoHandler(std::shared_ptr<CSession> session, const short& msg_id, const string& msg_data);
-	void GetUserInfoHandler(std::shared_ptr<CSession> session, const short& msg_id, const string& msg_data);
+	void SendTextHandler(shared_ptr<CSession> session, const short &msg_id, const string &msg_data);
+	void HistoryHandler(shared_ptr<CSession> session, const short &msg_id, const string &msg_data);
 
 	std::thread _worker_thread;
 	std::queue<shared_ptr<LogicNode>> _msg_que;

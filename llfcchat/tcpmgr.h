@@ -1,4 +1,4 @@
-#ifndef TCPMGR_H
+﻿#ifndef TCPMGR_H
 #define TCPMGR_H
 #include <QTcpSocket>
 #include "singleton.h"
@@ -34,16 +34,10 @@ signals:
     void sig_con_success(bool bsuccess);
     void sig_send_data(ReqId reqId, QByteArray data);
     void sig_swich_chatdlg();
-    void sig_load_apply_list(QJsonArray json_array);
     void sig_login_failed(int);
-    void sig_user_search(std::shared_ptr<SearchInfo>);
-    void sig_friend_apply(std::shared_ptr<AddFriendApply>);
-    void sig_add_auth_friend(std::shared_ptr<AuthInfo>);
-    void sig_auth_rsp(std::shared_ptr<AuthRsp>);
-    void sig_text_chat_msg(std::shared_ptr<TextChatMsg> msg);
-    // 简化版功能信号
-    void sig_echo_rsp(QString data);
-    void sig_get_user_info_rsp(QJsonObject user_info);
+    void sig_send_text_rsp(QJsonObject rsp);
+    void sig_recv_text_msg(int from_uid, QString content);
+    void sig_history_rsp(QJsonArray messages);
 };
 
 #endif // TCPMGR_H

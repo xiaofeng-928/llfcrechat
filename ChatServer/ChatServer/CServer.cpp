@@ -1,4 +1,4 @@
-#include "CServer.h"
+ï»¿#include "CServer.h"
 #include <iostream>
 #include "AsioIOServicePool.h"
 #include "UserMgr.h"
@@ -33,15 +33,10 @@ void CServer::StartAccept() {
 }
 
 void CServer::ClearSession(std::string uuid) {
-
-	if (_sessions.find(uuid) != _sessions.end()) {
-		//ÒÆ³ýÓÃ»§ºÍsessionµÄ¹ØÁª
-		UserMgr::GetInstance()->RmvUserSession(_sessions[uuid]->GetUserId());
+	lock_guard<mutex> lock(_mutex);
+	auto it = _sessions.find(uuid);
+	if (it != _sessions.end()) {
+		UserMgr::GetInstance()->RmvUserSession(it->second->GetUserId());
+		_sessions.erase(it);
 	}
-
-	{
-		lock_guard<mutex> lock(_mutex);
-		_sessions.erase(uuid);
-	}
-
 }

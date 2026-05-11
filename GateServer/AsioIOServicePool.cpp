@@ -21,11 +21,8 @@ AsioIOServicePool::~AsioIOServicePool() {
 }
 
 boost::asio::io_context& AsioIOServicePool::GetIOService() {
-	auto& service = _ioServices[_nextIOService++];
-	if (_nextIOService == _ioServices.size()) {
-		_nextIOService = 0;
-	}
-	return service;
+	auto idx = _nextIOService.fetch_add(1) % _ioServices.size();
+	return _ioServices[idx];
 }
 
 void AsioIOServicePool::Stop(){

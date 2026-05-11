@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "tcpmgr.h"
 #include "usermgr.h"
@@ -6,34 +6,53 @@
 #include <QMessageBox>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QScrollBar>
 #include <QTimer>
+
+// 聊天气泡 Widget：消息靠右显示，浅绿色背景
+class ChatBubble : public QWidget {
+public:
+    ChatBubble(const QString& text, QWidget* parent = nullptr) : QWidget(parent) {
+        QLabel* bubble = new QLabel(text);
+        bubble->setWordWrap(true);
+        bubble->setTextInteractionFlags(Qt::TextSelectableByMouse);
+        bubble->setStyleSheet(
+            "QLabel {"
+            "  background-color: #95EC69;"
+            "  border-radius: 8px;"
+            "  padding: 8px 12px;"
+            "  color: #000000;"
+            "  font-size: 14px;"
+            "}"
+        );
+        bubble->setMaximumWidth(400);
+        bubble->adjustSize();
+
+        QHBoxLayout* layout = new QHBoxLayout(this);
+        layout->addStretch(1);
+        layout->addWidget(bubble);
+        layout->setContentsMargins(8, 4, 8, 4);
+    }
+};
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    _simplified_dlg(nullptr),
-    _uid_edit(nullptr)
+    _chat_dlg(nullptr),
+    _chat_list(nullptr),
+    _input_edit(nullptr),
+    _send_btn(nullptr),
+    _clear_btn(nullptr),
+    _opencv_btn(nullptr),
+    _title_label(nullptr)
 {
     ui->setupUi(this);
-    //创建一个CentralWidget, 并将其设置为MainWindow的中心部件
     _login_dlg = new LoginDialog(this);
     _login_dlg->setWindowFlags(Qt::CustomizeWindowHint|Qt::FramelessWindowHint);
     setCentralWidget(_login_dlg);
 
-    //连接登录界面注册信号
     connect(_login_dlg, &LoginDialog::switchRegister, this, &MainWindow::SlotSwitchReg);
-    //连接创建聊天界面信号
-    connect(TcpMgr::GetInstance().get(),&TcpMgr::sig_swich_chatdlg, this, &MainWindow::SlotSwitchChat);
-
-    // ========== 测试模式：取消下面的注释可直接跳过登录进入简化版界面 ==========
-    /*
-    QTimer::singleShot(100, this, [this](){
-        auto test_user = std::make_shared<UserInfo>(1, "test_user", "");
-        UserMgr::GetInstance()->SetUserInfo(test_user);
-        emit TcpMgr::GetInstance()->sig_swich_chatdlg();
-    });
-    */
-    // ===========================================================================
+    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_swich_chatdlg, this, &MainWindow::SlotSwitchChat);
 }
 
 MainWindow::~MainWindow()
@@ -45,124 +64,167 @@ void MainWindow::SlotSwitchReg()
 {
     _reg_dlg = new RegisterDialog(this);
     _reg_dlg->hide();
-
     _reg_dlg->setWindowFlags(Qt::CustomizeWindowHint|Qt::FramelessWindowHint);
-
-     //连接注册界面返回登录信号
     connect(_reg_dlg, &RegisterDialog::sigSwitchLogin, this, &MainWindow::SlotSwitchLogin);
     setCentralWidget(_reg_dlg);
     _login_dlg->hide();
     _reg_dlg->show();
 }
 
-//从注册界面返回登录界面
 void MainWindow::SlotSwitchLogin()
 {
-    //创建一个CentralWidget, 并将其设置为MainWindow的中心部件
     _login_dlg = new LoginDialog(this);
     _login_dlg->setWindowFlags(Qt::CustomizeWindowHint|Qt::FramelessWindowHint);
     setCentralWidget(_login_dlg);
-
-   _reg_dlg->hide();
+    _reg_dlg->hide();
     _login_dlg->show();
-    //连接登录界面注册信号
     connect(_login_dlg, &LoginDialog::switchRegister, this, &MainWindow::SlotSwitchReg);
 }
 
-// 登录成功后切换到简化版界面（两个按钮）
 void MainWindow::SlotSwitchChat()
 {
-    // 创建简化版界面
-    _simplified_dlg = new QWidget();
-    _simplified_dlg->setWindowFlags(Qt::CustomizeWindowHint|Qt::FramelessWindowHint);
+    _chat_dlg = new QWidget();
+    _chat_dlg->setWindowFlags(Qt::CustomizeWindowHint|Qt::FramelessWindowHint);
 
-    QVBoxLayout* main_layout = new QVBoxLayout(_simplified_dlg);
-    main_layout->setSpacing(20);
-    main_layout->setContentsMargins(50, 50, 50, 50);
+    QVBoxLayout* main_layout = new QVBoxLayout(_chat_dlg);
+    main_layout->setSpacing(8);
+    main_layout->setContentsMargins(10, 10, 10, 10);
 
-    // 标题
-    QLabel* title = new QLabel("简化版功能界面");
-    title->setAlignment(Qt::AlignCenter);
-    QFont title_font = title->font();
-    title_font.setPointSize(20);
-    title_font.setBold(true);
-    title->setFont(title_font);
-    main_layout->addWidget(title);
-
-    // 用户信息
+    // 标题栏
     auto user_info = UserMgr::GetInstance()->GetUserInfo();
-    QString user_text = QString("当前用户: %1 (UID: %2)")
-        .arg(user_info->_name).arg(user_info->_uid);
-    QLabel* user_label = new QLabel(user_text);
-    user_label->setAlignment(Qt::AlignCenter);
-    main_layout->addWidget(user_label);
+    _title_label = new QLabel(QString("当前用户: %1 (UID: %2)")
+        .arg(user_info->_name).arg(user_info->_uid));
+    _title_label->setAlignment(Qt::AlignCenter);
+    _title_label->setStyleSheet("font-size: 16px; font-weight: bold; padding: 6px;");
+    main_layout->addWidget(_title_label);
 
-    main_layout->addSpacing(30);
+    // 消息显示区
+    _chat_list = new QListWidget();
+    _chat_list->setStyleSheet(
+        "QListWidget {"
+        "  background-color: #F5F5F5;"
+        "  border: 1px solid #E0E0E0;"
+        "  border-radius: 4px;"
+        "}"
+        "QListWidget::item {"
+        "  border: none;"
+        "  padding: 0px;"
+        "}"
+    );
+    _chat_list->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    main_layout->addWidget(_chat_list, 1);
 
-    // 按钮A：发送测试数据（Echo）
-    QPushButton* btn_echo = new QPushButton("发送测试数据(Echo)");
-    btn_echo->setMinimumHeight(50);
-    main_layout->addWidget(btn_echo);
-    connect(btn_echo, &QPushButton::clicked, this, &MainWindow::onBtnEchoClicked);
+    // 工具栏
+    QHBoxLayout* toolbar_layout = new QHBoxLayout();
+    _clear_btn = new QPushButton("清空记录");
+    _clear_btn->setFixedHeight(32);
+    _opencv_btn = new QPushButton("图像处理");
+    _opencv_btn->setFixedHeight(32);
+    toolbar_layout->addWidget(_clear_btn);
+    toolbar_layout->addStretch();
+    toolbar_layout->addWidget(_opencv_btn);
+    main_layout->addLayout(toolbar_layout);
 
-    // 按钮B：获取用户信息
-    QHBoxLayout* h_layout = new QHBoxLayout();
-    QLabel* uid_label = new QLabel("输入UID:");
-    _uid_edit = new QLineEdit();
-    _uid_edit->setPlaceholderText("请输入用户ID");
-    _uid_edit->setMaximumWidth(200);
-    QPushButton* btn_get_user = new QPushButton("获取用户信息");
-    btn_get_user->setMinimumHeight(50);
+    connect(_clear_btn, &QPushButton::clicked, this, &MainWindow::onClearClicked);
+    connect(_opencv_btn, &QPushButton::clicked, this, &MainWindow::onOpenCVClicked);
 
-    h_layout->addWidget(uid_label);
-    h_layout->addWidget(_uid_edit);
-    h_layout->addWidget(btn_get_user);
-    main_layout->addLayout(h_layout);
-    connect(btn_get_user, &QPushButton::clicked, this, &MainWindow::onBtnGetUserInfoClicked);
+    // 输入栏
+    QHBoxLayout* input_layout = new QHBoxLayout();
+    _input_edit = new QTextEdit();
+    _input_edit->setFixedHeight(60);
+    _input_edit->setPlaceholderText("输入消息...");
+    _send_btn = new QPushButton("发送");
+    _send_btn->setFixedSize(80, 60);
+    _send_btn->setStyleSheet("font-size: 16px; font-weight: bold;");
+    input_layout->addWidget(_input_edit);
+    input_layout->addWidget(_send_btn);
+    main_layout->addLayout(input_layout);
 
-    main_layout->addStretch();
+    connect(_send_btn, &QPushButton::clicked, this, &MainWindow::onSendClicked);
 
-    setCentralWidget(_simplified_dlg);
+    // 连接信号
+    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_send_text_rsp,
+            this, &MainWindow::onSendTextRsp);
+    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_recv_text_msg,
+            this, &MainWindow::onRecvTextMsg);
+    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_history_rsp,
+            this, &MainWindow::onHistoryRsp);
+
+    setCentralWidget(_chat_dlg);
     _login_dlg->hide();
-    this->setMinimumSize(QSize(600,400));
-    this->resize(600, 400);
-    _simplified_dlg->show();
-}
+    this->setMinimumSize(QSize(500, 600));
+    this->resize(600, 700);
+    _chat_dlg->show();
 
-// 按钮A：发送测试数据
-void MainWindow::onBtnEchoClicked()
-{
-    QString data = "Hello from client!";
+    // 加载历史消息
     QJsonObject json;
-    json["data"] = data;
-
+    json["limit"] = 50;
     QByteArray byteArray = QJsonDocument(json).toJson(QJsonDocument::Compact);
-    emit TcpMgr::GetInstance()->sig_send_data(ID_ECHO_REQ, byteArray);
-
-    QMessageBox::information(this, "提示", "已发送Echo请求: " + data);
+    emit TcpMgr::GetInstance()->sig_send_data(ID_HISTORY_REQ, byteArray);
 }
 
-// 按钮B：获取用户信息
-void MainWindow::onBtnGetUserInfoClicked()
+void MainWindow::addChatBubble(const QString& text)
 {
-    QString uid_str = _uid_edit->text();
-    if(uid_str.isEmpty()) {
-        QMessageBox::warning(this, "警告", "请输入用户ID");
+    ChatBubble* bubble = new ChatBubble(text);
+    QListWidgetItem* item = new QListWidgetItem(_chat_list);
+    item->setSizeHint(bubble->sizeHint());
+    _chat_list->setItemWidget(item, bubble);
+
+    // 自动滚动到底部
+    _chat_list->scrollToBottom();
+}
+
+void MainWindow::onSendClicked()
+{
+    QString text = _input_edit->toPlainText().trimmed();
+    if (text.isEmpty()) {
         return;
     }
 
-    bool ok;
-    int uid = uid_str.toInt(&ok);
-    if(!ok) {
-        QMessageBox::warning(this, "警告", "请输入有效的数字");
-        return;
-    }
+    int to_uid = UserMgr::GetInstance()->GetUid();
 
     QJsonObject json;
-    json["uid"] = uid;
+    json["to_uid"] = to_uid;
+    json["content"] = text;
 
     QByteArray byteArray = QJsonDocument(json).toJson(QJsonDocument::Compact);
-    emit TcpMgr::GetInstance()->sig_send_data(ID_GET_USER_INFO_REQ, byteArray);
+    emit TcpMgr::GetInstance()->sig_send_data(ID_SEND_TEXT_REQ, byteArray);
 
-    QMessageBox::information(this, "提示", "已发送获取用户信息请求，UID: " + uid_str);
+    addChatBubble(text);
+    _input_edit->clear();
+}
+
+void MainWindow::onClearClicked()
+{
+    _chat_list->clear();
+}
+
+void MainWindow::onOpenCVClicked()
+{
+    QMessageBox::information(this, "提示", "图像处理功能开发中...");
+}
+
+void MainWindow::onSendTextRsp(QJsonObject rsp)
+{
+    int err = rsp["error"].toInt();
+    if (err != 0) {
+        qDebug() << "Send text failed, error: " << err;
+    }
+}
+
+void MainWindow::onRecvTextMsg(int from_uid, QString content)
+{
+    // 跳过自己发的消息通知（onSendClicked已经显示了）
+    if (from_uid == UserMgr::GetInstance()->GetUid()) {
+        return;
+    }
+    addChatBubble(content);
+}
+
+void MainWindow::onHistoryRsp(QJsonArray messages)
+{
+    for (const QJsonValue& val : messages) {
+        QJsonObject obj = val.toObject();
+        addChatBubble(obj["content"].toString());
+    }
 }

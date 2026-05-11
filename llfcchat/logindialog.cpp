@@ -1,4 +1,4 @@
-#include "logindialog.h"
+﻿#include "logindialog.h"
 #include "ui_logindialog.h"
 #include <QDebug>
 #include "tcpmgr.h"
@@ -194,7 +194,10 @@ void LoginDialog::slot_login_mod_finish(ReqId id, QString res, ErrorCodes err)
 
 
     //调用对应的逻辑,根据id回调。
-    _handlers[id](jsonDoc.object());
+    auto it = _handlers.find(id);
+    if(it != _handlers.end()) {
+        it.value()(jsonDoc.object());
+    }
 
     return;
 }

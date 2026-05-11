@@ -1,4 +1,4 @@
-#include "resetdialog.h"
+﻿#include "resetdialog.h"
 #include "ui_resetdialog.h"
 #include <QDebug>
 #include <QRegularExpression>
@@ -86,7 +86,10 @@ void ResetDialog::slot_reset_mod_finish(ReqId id, QString res, ErrorCodes err)
 
 
     //调用对应的逻辑,根据id回调。
-    _handlers[id](jsonDoc.object());
+    auto it = _handlers.find(id);
+    if(it != _handlers.end()) {
+        it.value()(jsonDoc.object());
+    }
 
     return;
 }

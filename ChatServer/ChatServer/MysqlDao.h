@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "const.h"
 #include <thread>
 #include <jdbc/mysql_driver.h>
@@ -133,8 +133,9 @@ class MysqlDao
 public:
 	MysqlDao();
 	~MysqlDao();
-	// 根据uid获取用户信息
 	std::shared_ptr<UserInfo> GetUser(int uid);
+	int SaveMessage(int from_uid, int to_uid, const std::string& content);
+	std::vector<ChatMessage> GetRecentMessages(int uid, int limit);
 private:
 	std::unique_ptr<MySqlPool> pool_;
 };

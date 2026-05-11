@@ -1,4 +1,4 @@
-#include "httpmgr.h"
+﻿#include "httpmgr.h"
 #include <QJsonDocument>
 #include <QDebug>
 
@@ -70,9 +70,20 @@ void HttpMgr::slot_ReplyFinished(QNetworkReply *reply) {
 
     int error = jsonObj["error"].toInt();
     if(error != ErrorCodes::SUCCESS) {
-        emit sig_reg_mod_finish(reqId, QString::fromUtf8(data), (ErrorCodes)error);
-        emit sig_reset_mod_finish(reqId, QString::fromUtf8(data), (ErrorCodes)error);
-        emit sig_login_mod_finish(reqId, QString::fromUtf8(data), (ErrorCodes)error);
+        auto find_iter = _handlers.find(reqId);
+        if(find_iter != _handlers.end()) {
+            switch(mod) {
+            case REGISTERMOD:
+                emit sig_reg_mod_finish(reqId, QString::fromUtf8(data), (ErrorCodes)error);
+                break;
+            case RESETMOD:
+                emit sig_reset_mod_finish(reqId, QString::fromUtf8(data), (ErrorCodes)error);
+                break;
+            case LOGINMOD:
+                emit sig_login_mod_finish(reqId, QString::fromUtf8(data), (ErrorCodes)error);
+                break;
+            }
+        }
         emit sig_get_varifycode_finish(reqId, QString::fromUtf8(data), (ErrorCodes)error);
     } else {
         auto find_iter = _handlers.find(reqId);

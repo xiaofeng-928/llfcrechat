@@ -1,4 +1,4 @@
-#include "registerdialog.h"
+﻿#include "registerdialog.h"
 #include "ui_registerdialog.h"
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
@@ -73,7 +73,10 @@ void RegisterDialog::slot_reg_mod_finish(ReqId id, QString res, ErrorCodes err)
     }
 
     //调用对应的逻辑
-    _handlers[id](jsonDoc.object());
+    auto it = _handlers.find(id);
+    if(it != _handlers.end()) {
+        it.value()(jsonDoc.object());
+    }
 }
 
 bool RegisterDialog::checkUserValid()

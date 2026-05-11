@@ -1,4 +1,4 @@
-#ifndef MAINWINDOW_H
+﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
@@ -7,9 +7,11 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QLineEdit>
 #include <QPushButton>
 #include <QLabel>
+#include <QListWidget>
+#include <QTextEdit>
+#include <QJsonArray>
 
 namespace Ui {
 class MainWindow;
@@ -26,15 +28,25 @@ public slots:
     void SlotSwitchReg();
     void SlotSwitchLogin();
     void SlotSwitchChat();
-    // 简化版界面的按钮槽函数
-    void onBtnEchoClicked();
-    void onBtnGetUserInfoClicked();
 private:
+    void addChatBubble(const QString& text);
+    void onSendClicked();
+    void onClearClicked();
+    void onOpenCVClicked();
+    void onSendTextRsp(QJsonObject rsp);
+    void onRecvTextMsg(int from_uid, QString content);
+    void onHistoryRsp(QJsonArray messages);
+
     Ui::MainWindow *ui;
     LoginDialog* _login_dlg;
     RegisterDialog* _reg_dlg;
-    QWidget* _simplified_dlg;
-    QLineEdit* _uid_edit;
+    QWidget* _chat_dlg;
+    QListWidget* _chat_list;
+    QTextEdit* _input_edit;
+    QPushButton* _send_btn;
+    QPushButton* _clear_btn;
+    QPushButton* _opencv_btn;
+    QLabel* _title_label;
 };
 
 #endif // MAINWINDOW_H

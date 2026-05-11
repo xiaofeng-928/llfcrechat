@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <boost/asio.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -32,7 +32,7 @@ public:
 	void SetUserId(int uid);
 	int GetUserId();
 	void Start();
-	void Send(char* msg,  short max_length, short msgid);
+	void Send(char* msg,  int max_length, short msgid);
 	void Send(std::string msg, short msgid);
 	void Close();
 	std::shared_ptr<CSession> SharedSelf();
@@ -52,10 +52,10 @@ private:
 	bool _b_close;
 	std::queue<shared_ptr<SendNode> > _send_que;
 	std::mutex _send_lock;
-	//ÊÕµ½µÄÏûÏ¢½á¹¹
+	//ï¿½Õµï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½á¹¹
 	std::shared_ptr<RecvNode> _recv_msg_node;
 	bool _b_head_parse;
-	//ÊÕµ½µÄÍ·²¿½á¹¹
+	//ï¿½Õµï¿½ï¿½ï¿½Í·ï¿½ï¿½ï¿½á¹¹
 	std::shared_ptr<MsgNode> _recv_head_node;
 	int _user_uid;
 };

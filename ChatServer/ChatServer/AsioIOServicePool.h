@@ -1,5 +1,6 @@
-#pragma once
+ï»¿#pragma once
 #include <vector>
+#include <atomic>
 #include <boost/asio.hpp>
 #include "Singleton.h"
 class AsioIOServicePool:public Singleton<AsioIOServicePool>
@@ -12,7 +13,7 @@ public:
 	~AsioIOServicePool();
 	AsioIOServicePool(const AsioIOServicePool&) = delete;
 	AsioIOServicePool& operator=(const AsioIOServicePool&) = delete;
-	// Ê¹ÓÃ round-robin µÄ·½Ê½·µ»ØÒ»¸ö io_service
+	// Ê¹ï¿½ï¿½ round-robin ï¿½Ä·ï¿½Ê½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ io_service
 	boost::asio::io_context& GetIOService();
 	void Stop();
 private:
@@ -20,6 +21,6 @@ private:
 	std::vector<IOService> _ioServices;
 	std::vector<WorkPtr> _works;
 	std::vector<std::thread> _threads;
-	std::size_t                        _nextIOService;
+	std::atomic<std::size_t>           _nextIOService;
 };
 
