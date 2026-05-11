@@ -1,0 +1,38 @@
+# Visual Studio generated files
+.vs/
+x64/
+Debug/
+Release/
+
+# Build outputs
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.idb
+*.obj
+*.lib
+*.bin
+*.o
+
+# VS cache/index
+*.suo
+*.vsidx
+*.db
+*.ipch
+*.lock
+*.tlog
+*.lastbuildstate
+*.recipe
+*.wsuo
+
+# VS project user settings
+*.user
+*.filters
+
+# Qt build artifacts
+llfcchat/build/
+
+# Compiled protobuf
+*.pb.cc
+*.pb.h

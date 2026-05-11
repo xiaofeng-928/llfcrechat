@@ -1,0 +1,34 @@
+# Visual Studio
+.vs/
+x64/
+Debug/
+Release/
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.idb
+*.obj
+*.lib
+*.bin
+*.o
+*.suo
+*.vsidx
+*.db
+*.ipch
+*.lock
+*.tlog
+*.lastbuildstate
+*.recipe
+*.user
+*.filters
+
+# Qt
+llfcchat/build/
+
+# Generated protobuf
+*.pb.cc
+*.pb.h
+
+# IDE
+.vscode/
