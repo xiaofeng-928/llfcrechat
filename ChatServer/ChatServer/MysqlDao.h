@@ -8,13 +8,16 @@
 #include <jdbc/cppconn/statement.h>
 #include <jdbc/cppconn/exception.h>
 #include "data.h"
+#include <json/json.h>
+#include <json/value.h>
+#include <json/reader.h>
 #include <memory>
 #include <queue>
 #include <mutex>
 
 class SqlConnection {
 public:
-	SqlConnection(sql::Connection* con, int64_t lasttime):_con(con), _last_oper_time(lasttime){}
+	SqlConnection(sql::Connection* con, int64_t lasttime) :_con(con), _last_oper_time(lasttime) {}
 	std::unique_ptr<sql::Connection> _con;
 	int64_t _last_oper_time;
 };
@@ -22,7 +25,7 @@ public:
 class MySqlPool {
 public:
 	MySqlPool(const std::string& url, const std::string& user, const std::string& pass, const std::string& schema, int poolSize)
-		: url_(url), user_(user), pass_(pass), schema_(schema), poolSize_(poolSize), b_stop_(false){
+		: url_(url), user_(user), pass_(pass), schema_(schema), poolSize_(poolSize), b_stop_(false) {
 		try {
 			for (int i = 0; i < poolSize_; ++i) {
 				sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
@@ -38,12 +41,12 @@ public:
 					checkConnection();
 					std::this_thread::sleep_for(std::chrono::seconds(60));
 				}
-			});
+				});
 
 			_check_thread.detach();
 		}
 		catch (sql::SQLException& e) {
-			std::cout << "mysql pool init failed, error is " << e.what()<< std::endl;
+			std::cout << "mysql pool init failed, error is " << e.what() << std::endl;
 		}
 	}
 
@@ -57,7 +60,7 @@ public:
 			pool_.pop();
 			Defer defer([this, &con]() {
 				pool_.push(std::move(con));
-			});
+				});
 
 			if (timestamp - con->_last_oper_time < 5) {
 				continue;
@@ -136,6 +139,8 @@ public:
 	std::shared_ptr<UserInfo> GetUser(int uid);
 	int SaveMessage(int from_uid, int to_uid, const std::string& content);
 	std::vector<ChatMessage> GetRecentMessages(int uid, int limit);
+	void AppendAiMessage(int uid, const std::string& role, const std::string& content);
+	Json::Value GetAiMessages(int uid);
 private:
 	std::unique_ptr<MySqlPool> pool_;
 };

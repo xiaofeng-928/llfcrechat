@@ -2,7 +2,7 @@
 #include "ui_logindialog.h"
 #include <QDebug>
 #include "tcpmgr.h"
-#include <QtCore5Compat>
+
 #include <QRegularExpression>
 #include <QPainter.h>
 #include <QPainterPath>

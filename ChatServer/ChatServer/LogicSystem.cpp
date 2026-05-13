@@ -1,4 +1,6 @@
 ﻿#include "LogicSystem.h"
+#include <iostream>
+#include <sstream>
 #include "MysqlMgr.h"
 #include "const.h"
 #include "UserMgr.h"
@@ -86,6 +88,15 @@ void LogicSystem::RegisterCallBacks() {
 
 	_fun_callbacks[MSG_HISTORY_REQ] = std::bind(&LogicSystem::HistoryHandler, this,
 		placeholders::_1, placeholders::_2, placeholders::_3);
+
+	_fun_callbacks[MSG_AI_CHAT_REQ] = std::bind(&LogicSystem::AiChatHandler, this,
+		placeholders::_1, placeholders::_2, placeholders::_3);
+
+	_fun_callbacks[MSG_AI_HISTORY_REQ] = std::bind(&LogicSystem::AiHistoryHandler, this,
+		placeholders::_1, placeholders::_2, placeholders::_3);
+
+	_fun_callbacks[MSG_AI_SAVE_REQ] = std::bind(&LogicSystem::AiSaveHandler, this,
+		placeholders::_1, placeholders::_2, placeholders::_3);
 }
 
 void LogicSystem::LoginHandler(shared_ptr<CSession> session, const short &msg_id, const string &msg_data) {
@@ -149,7 +160,6 @@ void LogicSystem::SendTextHandler(shared_ptr<CSession> session, const short &msg
 	rtvalue["error"] = ErrorCodes::Success;
 	rtvalue["msg_id"] = msg_id_db;
 
-	// 尝试转发给对方
 	auto to_session = UserMgr::GetInstance()->GetSession(to_uid);
 	if (to_session != nullptr) {
 		Json::Value notify;
@@ -191,4 +201,85 @@ void LogicSystem::HistoryHandler(shared_ptr<CSession> session, const short &msg_
 		msg_array.append(item);
 	}
 	rtvalue["messages"] = msg_array;
+}
+
+void LogicSystem::AiChatHandler(shared_ptr<CSession> session, const short &msg_id, const string &msg_data)
+{
+	Json::Reader reader;
+	Json::Value root;
+	Json::Value rtvalue;
+
+	Defer defer([this, &rtvalue, session]() {
+		std::string return_str = rtvalue.toStyledString();
+		session->Send(return_str, MSG_AI_CHAT_RSP);
+	});
+
+	if (!reader.parse(msg_data, root)) {
+		rtvalue["error"] = ErrorCodes::Error_Json;
+		return;
+	}
+
+	int uid = session->GetUserId();
+	std::string content = root["content"].asString();
+
+	MysqlMgr::GetInstance()->AppendAiMessage(uid, "user", content);
+
+	rtvalue["error"] = ErrorCodes::Success;
+}
+
+void LogicSystem::AiSaveHandler(shared_ptr<CSession> session, const short &msg_id, const string &msg_data)
+{
+	Json::Reader reader;
+	Json::Value root;
+	Json::Value rtvalue;
+
+	Defer defer([this, &rtvalue, session]() {
+		std::string return_str = rtvalue.toStyledString();
+		session->Send(return_str, MSG_AI_SAVE_RSP);
+	});
+
+	if (!reader.parse(msg_data, root)) {
+		rtvalue["error"] = ErrorCodes::Error_Json;
+		return;
+	}
+
+	int uid = session->GetUserId();
+	std::string content = root["content"].asString();
+
+	MysqlMgr::GetInstance()->AppendAiMessage(uid, "assistant", content);
+
+	rtvalue["error"] = ErrorCodes::Success;
+}
+
+void LogicSystem::AiHistoryHandler(shared_ptr<CSession> session, const short &msg_id, const string &msg_data)
+{
+	Json::Reader reader;
+	Json::Value root;
+	Json::Value rtvalue;
+
+	Defer defer([this, &rtvalue, session]() {
+		std::string return_str = rtvalue.toStyledString();
+		session->Send(return_str, MSG_AI_HISTORY_RSP);
+	});
+
+	if (!reader.parse(msg_data, root)) {
+		rtvalue["error"] = ErrorCodes::Error_Json;
+		return;
+	}
+
+	int uid = session->GetUserId();
+	int limit = root.get("limit", 50).asInt();
+
+	Json::Value all_messages = MysqlMgr::GetInstance()->GetAiMessages(uid);
+	Json::Value result_msgs(Json::arrayValue);
+	int start = 0;
+	if (static_cast<int>(all_messages.size()) > limit) {
+		start = static_cast<int>(all_messages.size()) - limit;
+	}
+	for (int i = start; i < static_cast<int>(all_messages.size()); ++i) {
+		result_msgs.append(all_messages[i]);
+	}
+
+	rtvalue["error"] = ErrorCodes::Success;
+	rtvalue["messages"] = result_msgs;
 }

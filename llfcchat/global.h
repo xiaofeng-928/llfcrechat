@@ -28,6 +28,12 @@ enum ReqId{
     ID_SEND_TEXT_RSP = 1025,
     ID_HISTORY_REQ = 1026,
     ID_HISTORY_RSP = 1027,
+    ID_AI_CHAT_REQ = 1028,
+    ID_AI_CHAT_RSP = 1029,
+    ID_AI_HISTORY_REQ = 1030,
+    ID_AI_HISTORY_RSP = 1031,
+    ID_AI_SAVE_REQ = 1032,
+    ID_AI_SAVE_RSP = 1033,
 };
 
 enum ErrorCodes{

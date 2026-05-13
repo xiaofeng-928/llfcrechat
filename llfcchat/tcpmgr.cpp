@@ -139,6 +139,50 @@ void TcpMgr::initHandlers()
 
         emit sig_history_rsp(jsonObj["messages"].toArray());
     });
+
+    _handlers.insert(ID_AI_CHAT_RSP, [this](ReqId id, int len, QByteArray data) {
+        Q_UNUSED(len);
+        qDebug() << "handle id is " << id << " data is " << data;
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+        if (jsonDoc.isNull()) {
+            qDebug() << "Failed to create QJsonDocument.";
+            return;
+        }
+
+        QJsonObject jsonObj = jsonDoc.object();
+        emit sig_ai_chat_rsp(jsonObj);
+    });
+
+    _handlers.insert(ID_AI_SAVE_RSP, [this](ReqId id, int len, QByteArray data) {
+        Q_UNUSED(len);
+        qDebug() << "handle id is " << id << " data is " << data;
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+        if (jsonDoc.isNull()) {
+            qDebug() << "Failed to create QJsonDocument.";
+            return;
+        }
+
+        QJsonObject jsonObj = jsonDoc.object();
+        emit sig_ai_save_rsp(jsonObj);
+    });
+
+    _handlers.insert(ID_AI_HISTORY_RSP, [this](ReqId id, int len, QByteArray data) {
+        Q_UNUSED(len);
+        qDebug() << "handle id is " << id << " data is " << data;
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+        if (jsonDoc.isNull()) {
+            qDebug() << "Failed to create QJsonDocument.";
+            return;
+        }
+
+        QJsonObject jsonObj = jsonDoc.object();
+        if (!jsonObj.contains("messages")) {
+            qDebug() << "AI History Rsp missing messages field";
+            return;
+        }
+
+        emit sig_ai_history_rsp(jsonObj["messages"].toArray());
+    });
 }
 
 void TcpMgr::handleMsg(ReqId id, int len, QByteArray data)

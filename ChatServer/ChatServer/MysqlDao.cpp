@@ -123,3 +123,79 @@ std::vector<ChatMessage> MysqlDao::GetRecentMessages(int uid, int limit)
 	}
 	return messages;
 }
+
+
+void MysqlDao::AppendAiMessage(int uid, const std::string& role, const std::string& content)
+{
+	auto con = pool_->getConnection();
+	if (con == nullptr) {
+		return;
+	}
+
+	Defer defer([this, &con]() {
+		pool_->returnConnection(std::move(con));
+	});
+
+	try {
+		// Check if row exists
+		std::unique_ptr<sql::PreparedStatement> pstmt_check(con->_con->prepareStatement(
+			"SELECT 1 FROM ai_conversation WHERE uid = ?"));
+		pstmt_check->setInt(1, uid);
+		std::unique_ptr<sql::ResultSet> res(pstmt_check->executeQuery());
+
+		if (res->next()) {
+			// Row exists, append to JSON array
+			std::unique_ptr<sql::PreparedStatement> pstmt(con->_con->prepareStatement(
+				"UPDATE ai_conversation SET messages = JSON_ARRAY_APPEND(messages, '$', JSON_OBJECT('role', ?, 'content', ?)), updated_time = NOW() WHERE uid = ?"));
+			pstmt->setString(1, role);
+			pstmt->setString(2, content);
+			pstmt->setInt(3, uid);
+			pstmt->executeUpdate();
+		} else {
+			// No row, insert new
+			std::unique_ptr<sql::PreparedStatement> pstmt(con->_con->prepareStatement(
+				"INSERT INTO ai_conversation (uid, messages) VALUES (?, JSON_ARRAY(JSON_OBJECT('role', ?, 'content', ?)))"));
+			pstmt->setInt(1, uid);
+			pstmt->setString(2, role);
+			pstmt->setString(3, content);
+			pstmt->executeUpdate();
+		}
+	}
+	catch (sql::SQLException& e) {
+		std::cerr << "SQLException in AppendAiMessage: " << e.what();
+		std::cerr << " (MySQL error code: " << e.getErrorCode();
+		std::cerr << ", SQLState: " << e.getSQLState() << " )" << std::endl;
+	}
+}
+
+Json::Value MysqlDao::GetAiMessages(int uid)
+{
+	Json::Value messages(Json::arrayValue);
+	auto con = pool_->getConnection();
+	if (con == nullptr) {
+		return messages;
+	}
+
+	Defer defer([this, &con]() {
+		pool_->returnConnection(std::move(con));
+	});
+
+	try {
+		std::unique_ptr<sql::PreparedStatement> pstmt(con->_con->prepareStatement(
+			"SELECT messages FROM ai_conversation WHERE uid = ?"));
+		pstmt->setInt(1, uid);
+		std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+
+		if (res->next()) {
+			std::string json_str = res->getString("messages");
+			Json::Reader reader;
+			reader.parse(json_str, messages);
+		}
+	}
+	catch (sql::SQLException& e) {
+		std::cerr << "SQLException in GetAiMessages: " << e.what();
+		std::cerr << " (MySQL error code: " << e.getErrorCode();
+		std::cerr << ", SQLState: " << e.getSQLState() << " )" << std::endl;
+	}
+	return messages;
+}

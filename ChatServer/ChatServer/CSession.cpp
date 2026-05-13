@@ -144,7 +144,7 @@ void CSession::AsyncReadHead(int total_len)
 			std::cout << "msg_id is " << msg_id << endl;
 
 			// 验证 msg_id 在合法范围内
-			if (msg_id < MSG_CHAT_LOGIN || msg_id > MSG_HISTORY_RSP) {
+			if (msg_id < MSG_CHAT_LOGIN || msg_id > MSG_AI_SAVE_RSP) {
 				std::cout << "invalid msg_id is " << msg_id << endl;
 				_server->ClearSession(_session_id);
 				return;

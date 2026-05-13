@@ -38,6 +38,9 @@ signals:
     void sig_send_text_rsp(QJsonObject rsp);
     void sig_recv_text_msg(int from_uid, QString content);
     void sig_history_rsp(QJsonArray messages);
+    void sig_ai_chat_rsp(QJsonObject rsp);
+    void sig_ai_save_rsp(QJsonObject rsp);
+    void sig_ai_history_rsp(QJsonArray messages);
 };
 
 #endif // TCPMGR_H

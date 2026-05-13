@@ -5,7 +5,6 @@
 #-------------------------------------------------
 
 QT       += core gui network
-QT += core5compat
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -59,18 +58,8 @@ DISTFILES += \
 
 CONFIG(debug, debug|release) {
     message("debug mode")
-    TargetConfig = $${PWD}/config.ini
-    TargetConfig = $$replace(TargetConfig, /, \\)
-    OutputDir =  $${OUT_PWD}/$${DESTDIR}
-    OutputDir = $$replace(OutputDir, /, \\)
-    QMAKE_POST_LINK += copy /Y \"$$TargetConfig\" \"$$OutputDir\" &
 }else{
     message("release mode")
-    TargetConfig = $${PWD}/config.ini
-    TargetConfig = $$replace(TargetConfig, /, \\)
-    OutputDir =  $${OUT_PWD}/$${DESTDIR}
-    OutputDir = $$replace(OutputDir, /, \\)
-    QMAKE_POST_LINK += copy /Y \"$$TargetConfig\" \"$$OutputDir\"
 }
 
 win32-msvc*:QMAKE_CXXFLAGS += /wd"4819" /utf-8

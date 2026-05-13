@@ -20,12 +20,12 @@ int main(int argc, char *argv[])
      }
 
 
-    // 获取当前应用程序的路径
-    QString app_path = QCoreApplication::applicationDirPath();
-    // 拼接文件名
-    QString fileName = "config.ini";
-    QString config_path = QDir::toNativeSeparators(app_path +
-                             QDir::separator() + fileName);
+    // 从exe所在目录向上搜索config.ini，直到找到为止
+    QDir dir(QCoreApplication::applicationDirPath());
+    QString config_path = dir.absoluteFilePath("config.ini");
+    while (!QFile::exists(config_path) && dir.cdUp()) {
+        config_path = dir.absoluteFilePath("config.ini");
+    }
 
     QSettings settings(config_path, QSettings::IniFormat);
     QString gate_host = settings.value("GateServer/host").toString();

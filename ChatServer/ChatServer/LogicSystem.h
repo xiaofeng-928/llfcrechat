@@ -25,6 +25,9 @@ private:
 	void LoginHandler(shared_ptr<CSession> session, const short &msg_id, const string &msg_data);
 	void SendTextHandler(shared_ptr<CSession> session, const short &msg_id, const string &msg_data);
 	void HistoryHandler(shared_ptr<CSession> session, const short &msg_id, const string &msg_data);
+	void AiChatHandler(shared_ptr<CSession> session, const short &msg_id, const string &msg_data);
+	void AiSaveHandler(shared_ptr<CSession> session, const short &msg_id, const string &msg_data);
+	void AiHistoryHandler(shared_ptr<CSession> session, const short &msg_id, const string &msg_data);
 
 	std::thread _worker_thread;
 	std::queue<shared_ptr<LogicNode>> _msg_que;

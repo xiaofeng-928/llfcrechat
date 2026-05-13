@@ -18,3 +18,11 @@ int MysqlMgr::SaveMessage(int from_uid, int to_uid, const std::string& content) 
 std::vector<ChatMessage> MysqlMgr::GetRecentMessages(int uid, int limit) {
 	return _dao.GetRecentMessages(uid, limit);
 }
+
+void MysqlMgr::AppendAiMessage(int uid, const std::string& role, const std::string& content) {
+	_dao.AppendAiMessage(uid, role, content);
+}
+
+Json::Value MysqlMgr::GetAiMessages(int uid) {
+	return _dao.GetAiMessages(uid);
+}
