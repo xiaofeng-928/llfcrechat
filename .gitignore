@@ -30,5 +30,15 @@ llfcchat/build/
 *.pb.cc
 *.pb.h
 
+# Config (prevent API key leak)
+*.ini
+
 # IDE
 .vscode/
+.claude/
+
+# Docs
+*.md
+
+# Workspace
+*.code-workspace
